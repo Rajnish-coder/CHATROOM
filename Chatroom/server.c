@@ -92,8 +92,9 @@ void one_to_one(int sockfd1,int sockfd2){
         pthread_mutex_lock(&clients_mutex);
 
 	char buff1[500];
-	recv(sockfd1,buff1,500,0);
+	read(sockfd1,buff1,500);
 	str_trim(buff1,500);
+	printf("alpha\n");
 	send(sockfd2,buff1,sizeof(buff1),0);
 
 	pthread_mutex_unlock(&clients_mutex);
@@ -116,7 +117,8 @@ void *handle_client(void *arg){
 		strcpy(cli->name,name);
 		sprintf(buff,"%s has joined\n",cli->name);
 		printf("%s",buff);
-		send_msg(buff,cli->uid);
+	//	send_msg(buff,cli->uid);
+		
 	}
 	bzero(buff,SIZE);
 
@@ -131,32 +133,37 @@ void *handle_client(void *arg){
 			leave_flag=1;
 		}
 		else if(receive>0){
-			if(strlen(buff)>0){
-			//	if(strcmp(buff,"all")==0)
-			//	{
-			//		printf("inside\n");
-			//		send(cli->sockfd,"enter the msg",sizeof("enter the msg"),0);
-			//		bzero(buff,SIZE);
-			//		recv(cli->sockfd,buff,strlen(buff),0);
-					send_msg(buff,cli->uid);
-			//	}
-			//	else{
-			//		for(int i=0;i<MAX_CLIENTS;i++){
-			//			if(clients[i]){
-			//				if(strcmp(clients[i]->name,buff)==0){
-			//					send(cli->sockfd,"client prresent enter msg",sizeof("client present enter msg"),0);
-			//					one_to_one(cli->sockfd,clients[i]->sockfd);
-			//					flag=1;
-			//					break;
-			//				}
-			//			}
-			//		}
-			//		if(flag==0)
-			//			send(cli->sockfd,"not there",sizeof("not there"),0);
-			//	}
-				str_trim(buff,strlen(buff));
 			
-			}
+				if(strcmp(buff,"1")==0)
+				{
+					printf("inside\n");
+			//		send(cli->sockfd,"enter the msg",sizeof("enter the msg"),0);
+					bzero(buff,SIZE);
+				int temp=read(cli->sockfd,buff,SIZE);
+					printf("%d\n",temp);
+					send_msg(buff,cli->uid);
+					
+				}
+				else{
+					read(cli->sockfd,buff,SIZE);     //name reading
+					str_trim(buff,SIZE);
+					for(int i=0;i<MAX_CLIENTS;i++){
+						if(clients[i]){
+							if(strcmp(clients[i]->name,buff)==0){
+								send(cli->sockfd,"client prresent enter msg",sizeof("client present enter msg"),0);
+								one_to_one(cli->sockfd,clients[i]->sockfd);
+								flag=1;
+								printf("#\n");
+								break;
+							}
+						}
+					}
+					if(flag==0)
+						send(cli->sockfd,"not there",sizeof("not there"),0);
+				}
+			//	str_trim(buff,strlen(buff));
+			
+			
 		}
 		else{
 			printf("error\n");
